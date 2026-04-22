@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EdTech Radar — 行业情报播报</title>
+  <link rel="stylesheet" href="./assets/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- 侧边栏：历史期号 -->
+    <aside class="sidebar" id="sidebar" aria-label="历史期号">
+      <div class="sidebar-title">历史期号</div>
+      <ul class="issue-list" id="issue-list" role="list"></ul>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+
+      <!-- 报告头部 -->
+      <header class="header" style="padding: var(--space-6)">
+        <div style="display:flex; align-items:center; gap:var(--space-3); margin-bottom:var(--space-2)">
+          <button class="filter-tab" onclick="toggleSidebar()" aria-label="切换侧边栏"
+                  style="display:none" id="sidebar-toggle">☰ 期号</button>
+          <h1 class="header-title" id="report-title">加载中…</h1>
+        </div>
+        <div class="header-meta">
+          <span id="report-date"></span>
+        </div>
+        <p style="margin-top:var(--space-4); color:var(--color-text-secondary); font-size:var(--text-base)"
+           id="report-summary"></p>
+      </header>
+
+      <!-- 搜索 + 筛选 -->
+      <section class="controls" aria-label="搜索与筛选">
+        <input type="search" class="search-box" id="search-input"
+               placeholder="搜索信息、洞察、影响分析…" aria-label="搜索">
+        <div class="filter-tabs" id="filter-tabs" role="tablist"></div>
+      </section>
+
+      <!-- 条目列表 -->
+      <section id="items-container" aria-live="polite"></section>
+
+      <!-- 更新说明 -->
+      <footer style="margin-top:var(--space-8); padding:var(--space-6);
+                     background:var(--color-bg); border-radius:var(--radius-lg);
+                     box-shadow:var(--shadow-sm)">
+        <div style="font-size:var(--text-sm); font-weight:600; color:var(--color-text-secondary);
+                    margin-bottom:var(--space-2)">本次更新说明</div>
+        <p style="font-size:var(--text-sm); color:var(--color-text-secondary)" id="update-notes"></p>
+      </footer>
+
+    </main>
+  </div>
+
+  <script src="./assets/app.js"></script>
+  <script>
+    // 移动端：小屏显示侧边栏切换按钮
+    if (window.innerWidth <= 1024) {
+      document.getElementById('sidebar-toggle').style.display = 'inline-block';
+    }
+  </script>
+</body>
+</html>
