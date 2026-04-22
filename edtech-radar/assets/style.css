@@ -42,29 +42,29 @@
   --color-text-brand:     #ea580c;
 
   /* Categories */
-  --cat-policy-bg:    rgba(239,68,68,0.08);
-  --cat-policy-border:rgba(239,68,68,0.20);
-  --cat-policy-text:  #dc2626;
+  --cat-policy-bg:    rgba(239,68,68,0.1);
+  --cat-policy-border:rgba(239,68,68,0.5);
+  --cat-policy-text:  #1e293b;
 
-  --cat-market-bg:    rgba(59,130,246,0.08);
-  --cat-market-border:rgba(59,130,246,0.20);
-  --cat-market-text:  #2563eb;
+  --cat-market-bg:    rgba(59,130,246,0.1);
+  --cat-market-border:rgba(59,130,246,0.5);
+  --cat-market-text:  #1e293b;
 
-  --cat-product-bg:   rgba(168,85,247,0.08);
-  --cat-product-border:rgba(168,85,247,0.20);
-  --cat-product-text: #9333ea;
+  --cat-product-bg:   rgba(168,85,247,0.1);
+  --cat-product-border:rgba(168,85,247,0.5);
+  --cat-product-text: #1e293b;
 
-  --cat-biz-bg:       rgba(34,197,94,0.08);
-  --cat-biz-border:   rgba(34,197,94,0.20);
-  --cat-biz-text:     #16a34a;
+  --cat-biz-bg:       rgba(34,197,94,0.1);
+  --cat-biz-border:   rgba(34,197,94,0.5);
+  --cat-biz-text:     #1e293b;
 
   /* Impact badges */
-  --badge-high-bg:   rgba(239,68,68,0.10);
-  --badge-high-text: #dc2626;
-  --badge-mid-bg:    rgba(249,115,22,0.10);
-  --badge-mid-text:  #ea580c;
-  --badge-low-bg:    rgba(148,163,184,0.12);
-  --badge-low-text:  #64748b;
+  --badge-high-bg:   rgba(239,68,68,0.15);
+  --badge-high-text: #991b1b;
+  --badge-mid-bg:    rgba(245,158,11,0.15);
+  --badge-mid-text:  #92400e;
+  --badge-low-bg:    rgba(107,114,128,0.15);
+  --badge-low-text:  #374151;
 
   /* Shadows */
   --shadow-card:   0 1px 3px rgba(15,23,42,0.04), 0 4px 16px rgba(15,23,42,0.06);
@@ -74,8 +74,9 @@
   /* Layout */
   --sidebar-w: 272px;
   --header-h:  56px;
-  --radius-card:   14px;
-  --radius-pill:   100px;
+  --radius-card:   24px;
+  --radius-pill:   9999px;
+  --radius-badge:  12px;
   --radius-sm:     8px;
 
   /* Motion */
@@ -401,7 +402,7 @@ body::before {
 }
 .report-item:hover {
   box-shadow: var(--shadow-hover);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   background: var(--color-bg-card-hv);
 }
 
@@ -417,7 +418,7 @@ body::before {
 /* Category pill */
 .report-category {
   display: inline-flex; align-items: center;
-  padding: 3px 10px;
+  padding: 4px 12px;
   border-radius: var(--radius-pill);
   font-size: 12px; font-weight: 600;
   margin-bottom: var(--sp-3);
@@ -489,8 +490,8 @@ body::before {
 /* Impact level badges */
 .badge {
   display: inline-flex; align-items: center;
-  padding: 2px 8px; border-radius: var(--radius-pill);
-  font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: var(--radius-badge);
+  font-size: 12px; font-weight: 600;
 }
 .badge-high   { background: var(--badge-high-bg);  color: var(--badge-high-text); }
 .badge-medium { background: var(--badge-mid-bg);   color: var(--badge-mid-text); }
@@ -558,10 +559,10 @@ body::before {
 }
 
 /* ── Custom scrollbar ────────────────────────────────────────── */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: rgba(148,163,184,0.08); border-radius: 100px; }
-::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.40); border-radius: 100px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.65); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(148,163,184,0.2); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.60); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.80); }
 * { scrollbar-width: thin; scrollbar-color: rgba(148,163,184,0.40) transparent; }
 
 /* ── Responsive ──────────────────────────────────────────────── */
