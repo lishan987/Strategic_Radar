@@ -438,8 +438,8 @@ body::before {
 /* Insight block */
 .report-insight {
   background: var(--color-bg-insight);
-  border: 1px solid rgba(249,115,22,0.12);
-  border-left: 3px solid #f97316;
+  border: 1px solid rgba(59,130,246,0.12);
+  border-left: 3px solid transparent;
   border-radius: var(--radius-sm);
   padding: var(--sp-4) var(--sp-5);
   margin-bottom: var(--sp-5);
@@ -564,6 +564,152 @@ body::before {
 ::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.60); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.80); }
 * { scrollbar-width: thin; scrollbar-color: rgba(148,163,184,0.40) transparent; }
+
+/* ── Search Group (Global Search Results) ────────────────────── */
+.search-group {
+  margin-bottom: 3rem;
+  opacity: 0;
+  transform: translateY(16px);
+  animation: card-enter 0.4s var(--ease-out) both;
+}
+.search-group-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-5);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--color-border-card);
+}
+.search-group-badge {
+  display: inline-flex;
+  padding: 4px 12px;
+  background: var(--grad-brand);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.02em;
+}
+.search-group-date {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+.search-group-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  padding: 2px 10px;
+  background: rgba(148,163,184,0.10);
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+}
+
+/* ── Micro-interactions ──────────────────────────────────────── */
+
+/* Filter tab: lift + subtle bg on hover */
+.filter-tab {
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.filter-tab:not(.active):not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(37,99,235,0.10);
+}
+.filter-tab.active {
+  transform: translateY(-1px);
+}
+
+/* Report card: enhanced hover lift */
+.report-item {
+  will-change: transform, box-shadow;
+}
+.report-item:hover {
+  transform: translateY(-4px) scale(1.003);
+}
+
+/* Search box: branded focus ring */
+.search-box:focus {
+  border-color: rgba(37,99,235,0.45);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
+}
+
+/* Sidebar active item: left accent bar */
+.issue-item {
+  position: relative;
+  transition: background var(--dur-fast) ease, transform var(--dur-fast) var(--ease-out);
+}
+.issue-item:hover {
+  transform: translateX(3px);
+}
+.issue-item.active::after {
+  content: '';
+  position: absolute;
+  left: -var(--sp-3);
+  top: 20%;
+  bottom: 20%;
+  width: 3px;
+  background: var(--grad-brand);
+  border-radius: 0 2px 2px 0;
+}
+
+/* Badge: subtle pop on hover */
+.badge {
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) ease;
+}
+.impact-item:hover .badge {
+  transform: scale(1.08);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.10);
+}
+
+/* Report header: fade + slide on entrance */
+.report-header {
+  animation: header-fade-in 0.45s var(--ease-out) both;
+}
+@keyframes header-fade-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Controls block: slide in from top */
+.controls {
+  animation: header-fade-in 0.45s 0.05s var(--ease-out) both;
+}
+
+/* Insight border: left-to-right shimmer sweep */
+.report-insight {
+  position: relative;
+  overflow: hidden;
+}
+.report-insight::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #60a5fa 0%, #2563eb 50%, #60a5fa 100%);
+  background-size: 100% 200%;
+  animation: insight-border-flow 3s ease-in-out infinite;
+  border-radius: 0 0 0 var(--radius-sm);
+}
+@keyframes insight-border-flow {
+  0%   { background-position: 0% 0%; opacity: 0.6; }
+  50%  { background-position: 0% 100%; opacity: 1; }
+  100% { background-position: 0% 0%; opacity: 0.6; }
+}
+
+/* Empty state icon: gentle pulse */
+.empty-state-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto var(--sp-4);
+  color: var(--color-text-tertiary);
+  display: block;
+  animation: icon-pulse 2.5s ease-in-out infinite;
+}
+@keyframes icon-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%       { opacity: 0.8; transform: scale(1.06); }
+}
 
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 1024px) {

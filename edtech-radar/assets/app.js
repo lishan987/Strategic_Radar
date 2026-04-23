@@ -33,7 +33,7 @@ async function loadReports() {
 // ── Fuse.js ───────────────────────────────────────────────
 function initFuse() {
   const flat = allReports.flatMap((report, reportIdx) =>
-    report.items.map(item => ({ ...item, reportIdx, reportTitle: report.title }))
+    report.items.map(item => ({ ...item, reportIdx, reportTitle: report.title, reportIssue: report.issue }))
   );
   fuse = new Fuse(flat, {
     keys: ['source', 'insight',
@@ -76,6 +76,12 @@ function renderReport(idx) {
   const report = allReports[idx];
   if (!report) return;
 
+  // 全局搜索模式
+  if (searchQuery.trim()) {
+    renderGlobalSearch();
+    return;
+  }
+
   // Header
   document.getElementById('report-badge').innerHTML = `
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
@@ -93,11 +99,6 @@ function renderReport(idx) {
   if (activeCategory !== '全部') {
     items = items.filter(i => i.category === activeCategory);
   }
-  if (searchQuery.trim()) {
-    const results = fuse.search(searchQuery);
-    const matched = new Set(results.map(r => r.item.source));
-    items = items.filter(i => matched.has(i.source));
-  }
 
   renderFilterTabs(report.items);
 
@@ -113,6 +114,62 @@ function renderReport(idx) {
   ).join('');
 
   document.getElementById('update-notes').textContent = report.update_notes;
+}
+
+// ── Global Search ─────────────────────────────────────────
+function renderGlobalSearch() {
+  const results = fuse.search(searchQuery);
+
+  if (results.length === 0) {
+    showEmpty('未找到匹配的情报', `关键词"${searchQuery}"无匹配结果`);
+    return;
+  }
+
+  // 按期号分组
+  const grouped = {};
+  results.forEach(r => {
+    const issueId = r.item.reportIssue;
+    if (!grouped[issueId]) grouped[issueId] = [];
+    grouped[issueId].push(r.item);
+  });
+
+  // Header
+  document.getElementById('report-badge').innerHTML = `
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <path d="M10 10L7.5 7.5M8.5 5.5C8.5 7.433 6.933 9 5 9C3.067 9 1.5 7.433 1.5 5.5C1.5 3.567 3.067 2 5 2C6.933 2 8.5 3.567 8.5 5.5Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    全局搜索
+  `;
+  document.getElementById('report-title').textContent = `搜索结果：${results.length} 条`;
+  document.getElementById('report-date').textContent = `关键词"${searchQuery}"`;
+  document.getElementById('report-summary').textContent = `跨 ${Object.keys(grouped).length} 期情报的全局搜索结果`;
+
+  // 隐藏分类筛选
+  document.getElementById('filter-tabs').innerHTML = '';
+
+  const container = document.getElementById('items-container');
+  let html = '';
+  let delay = 0;
+
+  Object.keys(grouped).sort((a, b) => b - a).forEach(issueId => {
+    const issueReport = allReports.find(r => r.issue == issueId);
+    html += `
+      <div class="search-group" style="animation-delay:${delay}ms">
+        <div class="search-group-header">
+          <span class="search-group-badge">第 ${issueId} 期</span>
+          <span class="search-group-date">${formatDate(issueReport.published_at)}</span>
+          <span class="search-group-count">${grouped[issueId].length} 条</span>
+        </div>
+    `;
+    grouped[issueId].forEach((item, i) => {
+      html += renderItem(item, delay + (i + 1) * 40);
+    });
+    html += `</div>`;
+    delay += (grouped[issueId].length + 1) * 40;
+  });
+
+  container.innerHTML = html;
+  document.getElementById('update-notes').textContent = '';
 }
 
 // ── Item ──────────────────────────────────────────────────
