@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "issue", "title", "published_at", "summary", "items", "update_notes"],
+    "properties": {
+      "id": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+      "issue": { "type": "integer", "minimum": 1 },
+      "title": { "type": "string" },
+      "published_at": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+      "summary": { "type": "string" },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["raw", "analysis", "insight", "impacts"],
+          "properties": {
+            "raw": {
+              "type": "object",
+              "required": ["category", "date", "location", "topic", "event"],
+              "properties": {
+                "category": { "type": "string", "enum": ["政策类", "市场类", "产品类", "企业动态类"] },
+                "date": { "type": "string", "description": "事件发生日期" },
+                "location": { "type": "string", "description": "地点/机构" },
+                "topic": { "type": "string", "description": "主题" },
+                "event": { "type": "string", "description": "事件描述" },
+                "effect": { "type": "string", "description": "直接影响（可选）" }
+              }
+            },
+            "analysis": {
+              "type": "object",
+              "required": ["causality", "interests", "essence"],
+              "properties": {
+                "causality": {
+                  "type": "object",
+                  "required": ["root_cause", "amplification"],
+                  "properties": {
+                    "root_cause": { "type": "string", "description": "第一性原理推导的根本驱动力" },
+                    "amplification": { "type": "string", "description": "网络传播中的放大/扭曲机制" }
+                  }
+                },
+                "interests": {
+                  "type": "object",
+                  "required": ["beneficiaries", "losers", "marginalized"],
+                  "properties": {
+                    "beneficiaries": { "type": "string", "description": "获益方" },
+                    "losers": { "type": "string", "description": "受损方" },
+                    "marginalized": { "type": "string", "description": "被边缘化主体" }
+                  }
+                },
+                "essence": {
+                  "type": "object",
+                  "required": ["summary", "forecast"],
+                  "properties": {
+                    "summary": { "type": "string", "description": "一句话本质（含网络语境+底层逻辑）" },
+                    "forecast": {
+                      "type": "object",
+                      "required": ["positive", "risks"],
+                      "properties": {
+                        "positive": { "type": "string", "description": "3-6个月正向可能" },
+                        "risks": { "type": "string", "description": "3-6个月潜在风险" }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "insight": {
+              "type": "string",
+              "description": "核心洞察（一句话）"
+            },
+            "impacts": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "object",
+                "required": ["dimension", "priority", "content"],
+                "properties": {
+                  "dimension": {
+                    "type": "string",
+                    "enum": ["消费层", "经济层", "需求层", "商业层", "运营层", "政策层", "产品层", "技术层", "竞争层"]
+                  },
+                  "priority": {
+                    "type": "string",
+                    "enum": ["🔴", "🟡", "🟢"],
+                    "description": "🔴高优先级 🟡中优先级 🟢低优先级"
+                  },
+                  "content": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "update_notes": { "type": "string" }
+    }
+  }
+}

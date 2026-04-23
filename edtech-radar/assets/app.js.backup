@@ -33,20 +33,12 @@ async function loadReports() {
 // ── Fuse.js ───────────────────────────────────────────────
 function initFuse() {
   const flat = allReports.flatMap((report, reportIdx) =>
-    report.items.map(item => ({
-      ...item,
-      reportIdx,
-      reportTitle: report.title,
-      reportIssue: report.issue,
-      // 兼容新旧格式的搜索字段
-      _searchCategory: item.raw ? item.raw.category : item.category,
-      _searchText: item.raw
-        ? `${item.raw.topic} ${item.raw.event} ${item.insight}`
-        : `${item.source} ${item.insight}`,
-    }))
+    report.items.map(item => ({ ...item, reportIdx, reportTitle: report.title, reportIssue: report.issue }))
   );
   fuse = new Fuse(flat, {
-    keys: ['_searchText', '_searchCategory', 'raw.topic', 'raw.event', 'insight', 'source'],
+    keys: ['source', 'insight',
+           'impact.consumer', 'impact.operation',
+           'impact.compliance', 'impact.competition'],
     threshold: 0.35,
     includeScore: true,
   });
@@ -105,7 +97,7 @@ function renderReport(idx) {
   // Filter
   let items = report.items;
   if (activeCategory !== '全部') {
-    items = items.filter(i => getItemCategory(i) === activeCategory);
+    items = items.filter(i => i.category === activeCategory);
   }
 
   renderFilterTabs(report.items);
@@ -182,174 +174,37 @@ function renderGlobalSearch() {
 
 // ── Item ──────────────────────────────────────────────────
 function renderItem(item, delay = 0) {
-  // 兼容旧格式
-  if (item.source && !item.raw) {
-    return renderItemLegacy(item, delay);
-  }
-
-  return `
-    <article class="report-item category-${escapeHtml(item.raw.category)}"
-             style="animation-delay:${delay}ms">
-      ${renderRawInfo(item.raw)}
-      ${renderAnalysisFramework(item.analysis)}
-      ${renderInsight(item.insight)}
-      ${renderImpacts(item.impacts)}
-    </article>
-  `;
-}
-
-// 原始信息：直观简洁呈现
-function renderRawInfo(raw) {
-  return `
-    <div class="raw-info">
-      <span class="report-category ${escapeHtml(raw.category)}">${escapeHtml(raw.category)}</span>
-      <table class="raw-table">
-        <tr><th>时间</th><td>${escapeHtml(raw.date)}</td></tr>
-        <tr><th>地点</th><td>${escapeHtml(raw.location)}</td></tr>
-        <tr><th>主题</th><td>${escapeHtml(raw.topic)}</td></tr>
-        <tr><th>事件</th><td>${escapeHtml(raw.event)}</td></tr>
-        ${raw.effect ? `<tr><th>影响</th><td>${escapeHtml(raw.effect)}</td></tr>` : ''}
-      </table>
-    </div>
-  `;
-}
-
-// 分析框架：SVG可视化
-function renderAnalysisFramework(analysis) {
-  return `
-    <div class="analysis-framework">
-      <div class="framework-title">分析框架</div>
-      <svg class="framework-svg" viewBox="0 0 600 280" xmlns="http://www.w3.org/2000/svg">
-        <!-- 底层归因 -->
-        <g class="framework-node">
-          <rect x="10" y="10" width="180" height="80" rx="8" class="node-box node-causality"/>
-          <text x="100" y="35" class="node-label">底层归因</text>
-          <foreignObject x="20" y="45" width="160" height="40">
-            <div xmlns="http://www.w3.org/1999/xhtml" class="node-text">${escapeHtml(analysis.causality.root_cause)}</div>
-          </foreignObject>
-        </g>
-
-        <!-- 利益拆解 -->
-        <g class="framework-node">
-          <rect x="210" y="10" width="180" height="80" rx="8" class="node-box node-interests"/>
-          <text x="300" y="35" class="node-label">利益拆解</text>
-          <foreignObject x="220" y="45" width="160" height="40">
-            <div xmlns="http://www.w3.org/1999/xhtml" class="node-text">获益:${escapeHtml(analysis.interests.beneficiaries)}</div>
-          </foreignObject>
-        </g>
-
-        <!-- 本质 -->
-        <g class="framework-node">
-          <rect x="410" y="10" width="180" height="80" rx="8" class="node-box node-essence"/>
-          <text x="500" y="35" class="node-label">本质</text>
-          <foreignObject x="420" y="45" width="160" height="40">
-            <div xmlns="http://www.w3.org/1999/xhtml" class="node-text">${escapeHtml(analysis.essence.summary)}</div>
-          </foreignObject>
-        </g>
-
-        <!-- 连接线 -->
-        <path d="M 190 50 L 210 50" class="framework-arrow" marker-end="url(#arrowhead)"/>
-        <path d="M 390 50 L 410 50" class="framework-arrow" marker-end="url(#arrowhead)"/>
-
-        <!-- 箭头定义 -->
-        <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-            <polygon points="0 0, 10 3, 0 6" fill="#5A6C8D"/>
-          </marker>
-        </defs>
-
-        <!-- 网络传播放大机制 -->
-        <g class="framework-node">
-          <rect x="10" y="110" width="280" height="60" rx="8" class="node-box node-amplification"/>
-          <text x="150" y="135" class="node-label">网络传播放大</text>
-          <foreignObject x="20" y="145" width="260" height="20">
-            <div xmlns="http://www.w3.org/1999/xhtml" class="node-text-small">${escapeHtml(analysis.causality.amplification)}</div>
-          </foreignObject>
-        </g>
-
-        <!-- 趋势预测 -->
-        <g class="framework-node">
-          <rect x="310" y="110" width="280" height="60" rx="8" class="node-box node-forecast"/>
-          <text x="450" y="135" class="node-label">3-6月趋势</text>
-          <foreignObject x="320" y="145" width="260" height="20">
-            <div xmlns="http://www.w3.org/1999/xhtml" class="node-text-small">
-              ✓ ${escapeHtml(analysis.essence.forecast.positive)} | ⚠ ${escapeHtml(analysis.essence.forecast.risks)}
-            </div>
-          </foreignObject>
-        </g>
-
-        <!-- 受损/边缘化主体 -->
-        <g class="framework-node">
-          <rect x="10" y="190" width="580" height="80" rx="8" class="node-box node-marginalized"/>
-          <text x="300" y="215" class="node-label">受损与边缘化主体</text>
-          <foreignObject x="20" y="225" width="560" height="40">
-            <div xmlns="http://www.w3.org/1999/xhtml" class="node-text">
-              受损方: ${escapeHtml(analysis.interests.losers)} | 边缘化: ${escapeHtml(analysis.interests.marginalized)}
-            </div>
-          </foreignObject>
-        </g>
-      </svg>
-    </div>
-  `;
-}
-
-// 水面下深度洞察
-function renderInsight(insight) {
-  return `
-    <div class="report-insight" role="note" aria-label="水面下洞察">
-      <div class="report-insight-title" aria-hidden="true">水面下洞察</div>
-      <div class="report-insight-content">${escapeHtml(insight)}</div>
-    </div>
-  `;
-}
-
-// 影响层：9选4，带优先级
-function renderImpacts(impacts) {
-  const priorityClass = { '🔴': 'priority-high', '🟡': 'priority-mid', '🟢': 'priority-low' };
-  return `
-    <div class="impact-grid" role="list" aria-label="影响分析">
-      ${impacts.map(imp => `
-        <div class="impact-item ${priorityClass[imp.priority] || ''}" role="listitem">
-          <div class="impact-label">
-            <span class="impact-dimension">${escapeHtml(imp.dimension)}</span>
-            <span class="priority-badge" aria-label="优先级">${imp.priority}</span>
-          </div>
-          <div class="impact-content">${escapeHtml(imp.content)}</div>
-        </div>
-      `).join('')}
-    </div>
-  `;
-}
-
-// 旧格式兼容渲染
-function renderItemLegacy(item, delay = 0) {
   return `
     <article class="report-item category-${escapeHtml(item.category)}"
              style="animation-delay:${delay}ms">
-      <span class="report-category ${escapeHtml(item.category)}">${escapeHtml(item.category)}</span>
+      <span class="report-category ${escapeHtml(item.category)}"
+            aria-label="分类：${escapeHtml(item.category)}">
+        ${escapeHtml(item.category)}
+      </span>
       <p class="report-source">${escapeHtml(item.source)}</p>
-      <div class="report-insight" role="note">
+      <div class="report-insight" role="note" aria-label="水面下洞察">
         <div class="report-insight-title" aria-hidden="true">水面下洞察</div>
         <div class="report-insight-content">${escapeHtml(item.insight)}</div>
       </div>
-      <div class="impact-grid" role="list">
-        ${renderImpactLegacy('消费影响', item.impact.consumer)}
-        ${renderImpactLegacy('运营影响', item.impact.operation)}
-        ${renderImpactLegacy('合规影响', item.impact.compliance)}
-        ${renderImpactLegacy('竞争影响', item.impact.competition)}
+      <div class="impact-grid" role="list" aria-label="影响分析">
+        ${renderImpact('消费影响', item.impact.consumer)}
+        ${renderImpact('运营影响', item.impact.operation)}
+        ${renderImpact('合规影响', item.impact.compliance)}
+        ${renderImpact('竞争影响', item.impact.competition)}
       </div>
     </article>
   `;
 }
 
-function renderImpactLegacy(label, content) {
+function renderImpact(label, content) {
   const level = extractLevel(content);
   const text = content.replace(/^【(高|中|低)】/, '').trim();
   return `
     <div class="impact-item" role="listitem">
       <div class="impact-label">
         ${escapeHtml(label)}
-        <span class="badge badge-${levelClass(level)}">${level}</span>
+        <span class="badge badge-${levelClass(level)}"
+              aria-label="影响程度：${level}">${level}</span>
       </div>
       <div class="impact-content">${escapeHtml(text)}</div>
     </div>
@@ -357,16 +212,9 @@ function renderImpactLegacy(label, content) {
 }
 
 // ── Filter tabs ───────────────────────────────────────────
-function getItemCategory(item) {
-  return item.raw ? item.raw.category : item.category;
-}
-
 function renderFilterTabs(items) {
   const counts = {};
-  items.forEach(i => {
-    const cat = getItemCategory(i);
-    counts[cat] = (counts[cat] || 0) + 1;
-  });
+  items.forEach(i => { counts[i.category] = (counts[i.category] || 0) + 1; });
 
   document.getElementById('filter-tabs').innerHTML = CATEGORIES.map(cat => {
     const count = cat === '全部' ? items.length : (counts[cat] || 0);
