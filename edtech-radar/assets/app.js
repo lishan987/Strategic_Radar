@@ -3,6 +3,7 @@
 
 const CATEGORIES = ['全部', '政策类', '市场类', '产品类', '企业动态类'];
 
+let reportData = null; // 包含 meta 和 reports
 let allReports = [];
 let currentIssueIndex = 0;
 let activeCategory = '全部';
@@ -16,8 +17,17 @@ async function loadReports() {
   try {
     const res = await fetch('./data/reports.json');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    allReports = await res.json();
-    if (!Array.isArray(allReports) || allReports.length === 0) {
+    reportData = await res.json();
+
+    // 兼容新旧格式
+    if (Array.isArray(reportData)) {
+      allReports = reportData;
+      reportData = { reports: reportData };
+    } else {
+      allReports = reportData.reports || [];
+    }
+
+    if (allReports.length === 0) {
       showEmpty('暂无数据', '请向 reports.json 中添加期号数据');
       return;
     }
@@ -90,6 +100,13 @@ function renderReport(idx) {
     return;
   }
 
+  // Hero Section（仅在第一期显示）
+  if (idx === 0 && reportData.meta && reportData.meta.weekly_insight) {
+    renderHeroSection(reportData.meta.weekly_insight);
+  } else {
+    document.getElementById('hero-section').innerHTML = '';
+  }
+
   // Header
   document.getElementById('report-badge').innerHTML = `
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
@@ -118,7 +135,7 @@ function renderReport(idx) {
 
   // Stagger animation: each card delayed by 40ms
   container.innerHTML = items.map((item, i) =>
-    renderItem(item, i * 40)
+    renderItem(item, i * 40, i)
   ).join('');
 
   document.getElementById('update-notes').textContent = report.update_notes;
@@ -181,7 +198,7 @@ function renderGlobalSearch() {
 }
 
 // ── Item ──────────────────────────────────────────────────
-function renderItem(item, delay = 0) {
+function renderItem(item, delay = 0, itemIndex = 0) {
   // 兼容旧格式
   if (item.source && !item.raw) {
     return renderItemLegacy(item, delay);
@@ -189,6 +206,7 @@ function renderItem(item, delay = 0) {
 
   return `
     <article class="report-item category-${escapeHtml(item.raw.category)}"
+             id="item-${itemIndex}"
              style="animation-delay:${delay}ms">
       ${renderRawInfo(item.raw)}
       ${renderAnalysisFramework(item.analysis)}
@@ -454,6 +472,88 @@ function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// ── Hero Section ──────────────────────────────────────────
+function renderHeroSection(weeklyInsight) {
+  const heroContainer = document.getElementById('hero-section');
+
+  // 核心洞见卡片
+  const insightHTML = `
+    <div class="hero-insight">
+      <div class="hero-insight-badge">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M7 1L2 4v3c0 3.3 2.2 6.4 5 7.2 2.8-.8 5-3.9 5-7.2V4L7 1z"
+                stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+        ${escapeHtml(weeklyInsight.week)} 核心洞见
+      </div>
+      <h2 class="hero-insight-title">${escapeHtml(weeklyInsight.title)}</h2>
+      <p class="hero-insight-summary">${escapeHtml(weeklyInsight.summary)}</p>
+      <a href="#item-${weeklyInsight.related_item_index || 0}" class="hero-insight-link">
+        查看完整分析
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  `;
+
+  // 高优先级事件卡片
+  const priorityItems = getAllPriorityItems();
+  const priorityHTML = priorityItems.length > 0 ? `
+    <div class="hero-priority-events">
+      ${priorityItems.slice(0, 3).map(item => `
+        <div class="hero-event-card" onclick="scrollToItem(${item.index})">
+          <div class="hero-event-priority">🔴</div>
+          <div class="hero-event-title">${escapeHtml(item.title)}</div>
+          <span class="hero-event-category" style="${getCategoryStyle(item.category)}">${escapeHtml(item.category)}</span>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+
+  heroContainer.innerHTML = insightHTML + priorityHTML;
+}
+
+function getAllPriorityItems() {
+  const items = [];
+  allReports.forEach((report, reportIdx) => {
+    report.items.forEach((item, itemIdx) => {
+      const hasPriority = item.impacts && item.impacts.some(imp => imp.priority === '🔴');
+      if (hasPriority) {
+        items.push({
+          index: itemIdx,
+          reportIdx: reportIdx,
+          title: item.raw ? item.raw.topic : item.source.substring(0, 50),
+          category: item.raw ? item.raw.category : item.category
+        });
+      }
+    });
+  });
+  return items;
+}
+
+function getCategoryStyle(category) {
+  const styles = {
+    '政策类': 'background: var(--cat-policy-bg); border-color: var(--cat-policy-border); color: var(--cat-policy-text);',
+    '市场类': 'background: var(--cat-market-bg); border-color: var(--cat-market-border); color: var(--cat-market-text);',
+    '产品类': 'background: var(--cat-product-bg); border-color: var(--cat-product-border); color: var(--cat-product-text);',
+    '企业动态类': 'background: var(--cat-biz-bg); border-color: var(--cat-biz-border); color: var(--cat-biz-text);'
+  };
+  return styles[category] || '';
+}
+
+function scrollToItem(index) {
+  const element = document.getElementById(`item-${index}`);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
