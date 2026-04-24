@@ -212,6 +212,7 @@ function renderItem(item, delay = 0, itemIndex = 0) {
       ${renderAnalysisFramework(item.analysis)}
       ${renderInsight(item.insight)}
       ${renderImpacts(item.impacts)}
+      ${item.actions ? renderActions(item.actions, item.follow_up) : ''}
     </article>
   `;
 }
@@ -313,6 +314,54 @@ function renderImpacts(impacts) {
       `).join('')}
     </div>
   `;
+}
+
+// 行动建议：决策支持模块
+function renderActions(actions, followUp) {
+  return `
+    <div class="actions-section">
+      <div class="actions-title">💡 行动建议</div>
+      <div class="actions-list">
+        ${actions.strategic ? `
+          <div class="action-item">
+            <span class="action-label">战略层</span>
+            <span class="action-content">${escapeHtml(actions.strategic)}</span>
+          </div>
+        ` : ''}
+        ${actions.tactical ? `
+          <div class="action-item">
+            <span class="action-label">战术层</span>
+            <span class="action-content">${escapeHtml(actions.tactical)}</span>
+          </div>
+        ` : ''}
+        ${actions.research ? `
+          <div class="action-item">
+            <span class="action-label">研究层</span>
+            <span class="action-content">${escapeHtml(actions.research)}</span>
+          </div>
+        ` : ''}
+      </div>
+      ${followUp ? `
+        <div class="follow-up-section">
+          <div class="follow-up-title">📌 跟进任务</div>
+          <div class="follow-up-content">
+            <span class="follow-up-item">负责人：<strong>${escapeHtml(followUp.owner)}</strong></span>
+            <span class="follow-up-item">截止：<strong>${escapeHtml(followUp.deadline)}</strong></span>
+            <span class="follow-up-status status-${followUp.status}">${getStatusText(followUp.status)}</span>
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function getStatusText(status) {
+  const statusMap = {
+    'pending': '待开始',
+    'in_progress': '进行中',
+    'done': '已完成'
+  };
+  return statusMap[status] || status;
 }
 
 // 旧格式兼容渲染
