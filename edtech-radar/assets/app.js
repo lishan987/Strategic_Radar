@@ -214,81 +214,57 @@ function renderRawInfo(raw) {
   `;
 }
 
-// 分析框架：SVG可视化
+// 分析框架：HTML可视化（自适应高度）
 function renderAnalysisFramework(analysis) {
   return `
     <div class="analysis-framework">
       <div class="framework-title">分析框架</div>
-      <svg class="framework-svg" viewBox="0 0 600 320" xmlns="http://www.w3.org/2000/svg">
-        <!-- 底层归因 -->
-        <g class="framework-node">
-          <rect x="10" y="10" width="180" height="90" rx="8" class="node-box node-causality"/>
-          <text x="100" y="30" class="node-label">底层归因</text>
-          <foreignObject x="20" y="40" width="160" height="55">
-            <div xmlns="http://www.w3.org/1999/xhtml" class="node-text">${escapeHtml(analysis.causality.root_cause)}</div>
-          </foreignObject>
-        </g>
 
-        <!-- 利益拆解 -->
-        <g class="framework-node">
-          <rect x="210" y="10" width="180" height="90" rx="8" class="node-box node-interests"/>
-          <text x="300" y="30" class="node-label">利益拆解</text>
-          <foreignObject x="220" y="40" width="160" height="55">
-            <div xmlns="http://www.w3.org/1999/xhtml" class="node-text">获益:${escapeHtml(analysis.interests.beneficiaries)}</div>
-          </foreignObject>
-        </g>
+      <!-- 第一行：底层归因 → 利益拆解 → 本质 -->
+      <div class="framework-row">
+        <div class="framework-node node-causality">
+          <div class="node-label">底层归因</div>
+          <div class="node-content">${escapeHtml(analysis.causality.root_cause)}</div>
+        </div>
+        <div class="framework-arrow">→</div>
+        <div class="framework-node node-interests">
+          <div class="node-label">利益拆解</div>
+          <div class="node-content">
+            <strong>获益方：</strong>${escapeHtml(analysis.interests.beneficiaries)}
+          </div>
+        </div>
+        <div class="framework-arrow">→</div>
+        <div class="framework-node node-essence">
+          <div class="node-label">本质</div>
+          <div class="node-content">${escapeHtml(analysis.essence.summary)}</div>
+        </div>
+      </div>
 
-        <!-- 本质 -->
-        <g class="framework-node">
-          <rect x="410" y="10" width="180" height="90" rx="8" class="node-box node-essence"/>
-          <text x="500" y="30" class="node-label">本质</text>
-          <foreignObject x="420" y="40" width="160" height="55">
-            <div xmlns="http://www.w3.org/1999/xhtml" class="node-text">${escapeHtml(analysis.essence.summary)}</div>
-          </foreignObject>
-        </g>
+      <!-- 第二行：网络传播放大 | 趋势预测 -->
+      <div class="framework-row">
+        <div class="framework-node node-amplification">
+          <div class="node-label">网络传播放大</div>
+          <div class="node-content">${escapeHtml(analysis.causality.amplification)}</div>
+        </div>
+        <div class="framework-node node-forecast">
+          <div class="node-label">3-6月趋势</div>
+          <div class="node-content">
+            <div class="forecast-item"><span class="forecast-icon">✓</span> ${escapeHtml(analysis.essence.forecast.positive)}</div>
+            <div class="forecast-item"><span class="forecast-icon">⚠</span> ${escapeHtml(analysis.essence.forecast.risks)}</div>
+          </div>
+        </div>
+      </div>
 
-        <!-- 连接线 -->
-        <path d="M 190 55 L 210 55" class="framework-arrow" marker-end="url(#arrowhead)"/>
-        <path d="M 390 55 L 410 55" class="framework-arrow" marker-end="url(#arrowhead)"/>
-
-        <!-- 箭头定义 -->
-        <defs>
-          <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-            <polygon points="0 0, 10 3, 0 6" fill="#5A6C8D"/>
-          </marker>
-        </defs>
-
-        <!-- 网络传播放大机制 -->
-        <g class="framework-node">
-          <rect x="10" y="120" width="280" height="70" rx="8" class="node-box node-amplification"/>
-          <text x="150" y="140" class="node-label">网络传播放大</text>
-          <foreignObject x="20" y="150" width="260" height="35">
-            <div xmlns="http://www.w3.org/1999/xhtml" class="node-text-small">${escapeHtml(analysis.causality.amplification)}</div>
-          </foreignObject>
-        </g>
-
-        <!-- 趋势预测 -->
-        <g class="framework-node">
-          <rect x="310" y="120" width="280" height="70" rx="8" class="node-box node-forecast"/>
-          <text x="450" y="140" class="node-label">3-6月趋势</text>
-          <foreignObject x="320" y="150" width="260" height="35">
-            <div xmlns="http://www.w3.org/1999/xhtml" class="node-text-small">
-              ✓ ${escapeHtml(analysis.essence.forecast.positive)} | ⚠ ${escapeHtml(analysis.essence.forecast.risks)}
-            </div>
-          </foreignObject>
-        </g>
-
-        <!-- 受损/边缘化主体 -->
-        <g class="framework-node">
-          <rect x="10" y="210" width="580" height="100" rx="8" class="node-box node-marginalized"/>
-          <text x="300" y="230" class="node-label">受损与边缘化主体</text>
-          <foreignObject x="20" y="240" width="560" height="65">
-            <div xmlns="http://www.w3.org/1999/xhtml" class="node-text">
-              受损方: ${escapeHtml(analysis.interests.losers)} | 边缘化: ${escapeHtml(analysis.interests.marginalized)}
-            </div>
-          </foreignObject>
-        </g>
-      </svg>
+      <!-- 第三行：受损与边缘化主体 -->
+      <div class="framework-row">
+        <div class="framework-node node-marginalized">
+          <div class="node-label">受损与边缘化主体</div>
+          <div class="node-content">
+            <div><strong>受损方：</strong>${escapeHtml(analysis.interests.losers)}</div>
+            <div style="margin-top: 8px;"><strong>边缘化：</strong>${escapeHtml(analysis.interests.marginalized)}</div>
+          </div>
+        </div>
+      </div>
     </div>
   `;
 }
